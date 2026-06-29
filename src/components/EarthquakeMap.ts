@@ -118,6 +118,32 @@ function updateSourceData(map: Map, earthquakes: EarthquakeCollection): void {
   }
 }
 
+interface EarthquakePopupData {
+  longitude: number;
+  latitude: number;
+  mag: number | null;
+  place: string;
+  time: number | null;
+  depth: number;
+}
+
+function buildPopupHTML(data: EarthquakePopupData): string {
+  const magnitude = formatMagnitude(data.mag);
+  const magnitudeColor = magnitudeToColor(data.mag);
+
+  return `<article class="earthquake-popup">
+    <div class="earthquake-popup__magnitude" style="background-color: ${magnitudeColor}" aria-label="Magnitude ${magnitude}">${magnitude}</div>
+    <div class="earthquake-popup__content">
+      <p class="earthquake-popup__label">Event detail</p>
+      <strong>${escapeHtml(data.place)}</strong>
+      <dl>
+        <div><dt>Time</dt><dd>${escapeHtml(formatEventTime(data.time))}</dd></div>
+        <div><dt>Depth</dt><dd>${escapeHtml(formatDepth(data.depth))}</dd></div>
+      </dl>
+    </div>
+  </article>`;
+}
+
 function wirePopup(map: Map): void {
   map.on('click', LAYER_ID, (event: MapLayerMouseEvent) => {
     const features = map.queryRenderedFeatures(event.point, { layers: [LAYER_ID] });
@@ -128,31 +154,20 @@ function wirePopup(map: Map): void {
     }
 
     const coords = (feature.geometry as { coordinates: number[] }).coordinates;
-    const longitude = coords[0] ?? 0;
-    const latitude = coords[1] ?? 0;
     const props = feature.properties as Record<string, unknown>;
-    const depth = typeof props._depth === 'number' ? props._depth : (coords[2] ?? 0);
-    const mag = typeof props.mag === 'number' ? props.mag : null;
-    const magnitude = formatMagnitude(mag);
-    const magnitudeColor = magnitudeToColor(mag);
-    const place = typeof props.place === 'string' ? props.place : 'Unknown location';
-    const time = typeof props.time === 'number' ? props.time : null;
+
+    const data: EarthquakePopupData = {
+      longitude: coords[0] ?? 0,
+      latitude: coords[1] ?? 0,
+      mag: typeof props.mag === 'number' ? props.mag : null,
+      place: typeof props.place === 'string' ? props.place : 'Unknown location',
+      time: typeof props.time === 'number' ? props.time : null,
+      depth: typeof props._depth === 'number' ? props._depth : (coords[2] ?? 0),
+    };
 
     new Popup({ maxWidth: '320px', offset: 14 })
-      .setLngLat([longitude, latitude])
-      .setHTML(
-        `<article class="earthquake-popup">
-          <div class="earthquake-popup__magnitude" style="background-color: ${magnitudeColor}" aria-label="Magnitude ${magnitude}">${magnitude}</div>
-          <div class="earthquake-popup__content">
-            <p class="earthquake-popup__label">Event detail</p>
-            <strong>${escapeHtml(place)}</strong>
-            <dl>
-              <div><dt>Time</dt><dd>${escapeHtml(formatEventTime(time))}</dd></div>
-              <div><dt>Depth</dt><dd>${escapeHtml(formatDepth(depth))}</dd></div>
-            </dl>
-          </div>
-        </article>`,
-      )
+      .setLngLat([data.longitude, data.latitude])
+      .setHTML(buildPopupHTML(data))
       .addTo(map);
   });
 
