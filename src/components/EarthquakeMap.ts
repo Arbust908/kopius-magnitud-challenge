@@ -1,3 +1,4 @@
+import { findElement } from '../utils/dom';
 import {
   GeoJSONSource,
   LngLatBounds,
@@ -198,12 +199,3 @@ function escapeHtml(value: string): string {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
-function findElement<TElement extends Element>(root: Element, selector: string): TElement {
-  const element = root.querySelector<TElement>(selector);
-
-  if (!element) {
-    throw new Error(`Missing required element: ${selector}`);
-  }
-
-  return element;
-}

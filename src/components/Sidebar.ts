@@ -1,3 +1,4 @@
+import { findElement } from '../utils/dom';
 import type {
   EarthquakeFilters,
   EarthquakeFormValues,
@@ -233,12 +234,3 @@ function getInput(form: HTMLFormElement, fieldName: FieldName): HTMLInputElement
   return findElement<HTMLInputElement>(form, `[name="${fieldName}"]`);
 }
 
-function findElement<TElement extends Element>(root: Element, selector: string): TElement {
-  const element = root.querySelector<TElement>(selector);
-
-  if (!element) {
-    throw new Error(`Missing required element: ${selector}`);
-  }
-
-  return element;
-}
