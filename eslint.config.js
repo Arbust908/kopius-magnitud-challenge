@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
@@ -11,26 +12,7 @@ export default tseslint.config(
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
-      globals: {
-        AbortController: 'readonly',
-        Element: 'readonly',
-        Event: 'readonly',
-        HTMLButtonElement: 'readonly',
-        HTMLDivElement: 'readonly',
-        HTMLFormElement: 'readonly',
-        HTMLInputElement: 'readonly',
-        HTMLElement: 'readonly',
-        Node: 'readonly',
-        RequestInit: 'readonly',
-        ResizeObserver: 'readonly',
-        Response: 'readonly',
-        console: 'readonly',
-        document: 'readonly',
-        fetch: 'readonly',
-        queueMicrotask: 'readonly',
-        setTimeout: 'readonly',
-        window: 'readonly',
-      },
+      globals: globals.browser,
     },
   },
 );

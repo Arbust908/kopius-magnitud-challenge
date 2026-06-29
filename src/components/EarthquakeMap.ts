@@ -105,16 +105,21 @@ function addEarthquakeLayer(map: Map): void {
 }
 
 function updateSourceData(map: Map, earthquakes: EarthquakeCollection): void {
+  // Clone features so the caller's reference is not mutated.
   // Copy depth from geometry.coordinates[2] into properties so it survives
   // MapLibre's 2D coordinate normalization (which strips the third dimension).
-  for (const feature of earthquakes.features) {
-    feature.properties = { ...feature.properties, _depth: feature.geometry.coordinates[2] };
-  }
+  const collection: EarthquakeCollection = {
+    ...earthquakes,
+    features: earthquakes.features.map((f) => ({
+      ...f,
+      properties: { ...f.properties, _depth: f.geometry.coordinates[2] },
+    })),
+  };
 
   const source = map.getSource(SOURCE_ID);
 
   if (source instanceof GeoJSONSource) {
-    source.setData(earthquakes);
+    source.setData(collection);
   }
 }
 

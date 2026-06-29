@@ -1,29 +1,14 @@
+/**
+ * Properties the app actually reads from USGS earthquake features.
+ * The USGS response includes many more fields (felt, cdi, mmi, alert, etc.)
+ * but we only declare the ones we use.
+ */
 export interface EarthquakeProperties {
   mag: number | null;
   place: string | null;
   time: number | null;
   _depth?: number | null;
-  url?: string | null;
-  detail?: string | null;
-  felt?: number | null;
-  cdi?: number | null;
-  mmi?: number | null;
-  alert?: string | null;
-  status?: string | null;
-  tsunami?: number | null;
-  sig?: number | null;
-  net?: string | null;
-  code?: string | null;
-  ids?: string | null;
-  sources?: string | null;
-  types?: string | null;
-  nst?: number | null;
-  dmin?: number | null;
-  rms?: number | null;
-  gap?: number | null;
-  magType?: string | null;
-  type?: string | null;
-  title?: string | null;
+  [key: string]: unknown;
 }
 
 export interface EarthquakeGeometry {

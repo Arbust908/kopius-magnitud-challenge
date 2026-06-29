@@ -7,6 +7,7 @@ import type {
 } from '../types/earthquake';
 import { toDateInputValue } from '../utils/date';
 import { validateEarthquakeFilters } from '../utils/validation';
+import { MAGNITUDE_BANDS, BAND_CSS_NAMES } from '../utils/magnitude-scale';
 
 interface SidebarOptions {
   initialValues: EarthquakeFormValues;
@@ -18,6 +19,13 @@ export interface SidebarController {
   element: HTMLElement;
   setLoading: (isLoading: boolean) => void;
   setStatus: (status: SidebarStatus) => void;
+}
+
+function buildLegendHTML(): string {
+  const items = BAND_CSS_NAMES.map(
+    (name) => `<div><dt class="legend-dot legend-dot--${name}"></dt><dd>${MAGNITUDE_BANDS[name].label}</dd></div>`,
+  );
+  return `<dl class="legend" aria-label="Magnitude legend">${items.join('')}</dl>`;
 }
 
 const fieldNames = ['startTime', 'endTime', 'minMagnitude'] as const;
@@ -74,24 +82,7 @@ export function createSidebar(options: SidebarOptions): SidebarController {
         <small>USGS scale</small>
       </div>
 
-      <dl class="legend" aria-label="Magnitude legend">
-        <div>
-          <dt class="legend-dot legend-dot--minor"></dt>
-          <dd>Below 4</dd>
-        </div>
-        <div>
-          <dt class="legend-dot legend-dot--moderate"></dt>
-          <dd>4 to 5</dd>
-        </div>
-        <div>
-          <dt class="legend-dot legend-dot--strong"></dt>
-          <dd>5 to 6</dd>
-        </div>
-        <div>
-          <dt class="legend-dot legend-dot--major"></dt>
-          <dd>6+</dd>
-        </div>
-      </dl>
+      ${buildLegendHTML()}
     </div>
 
         <div class="form-actions">
