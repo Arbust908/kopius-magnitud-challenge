@@ -1,14 +1,14 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './styles/main.css';
 
-import { fetchEarthquakes } from './api/earthquakes';
-import { createEarthquakeMap } from './components/EarthquakeMap';
-import { createSidebar } from './components/Sidebar';
-import type { EarthquakeFilters, SidebarStatus } from './types/earthquake';
-import { EMPTY_COLLECTION } from './types/earthquake';
-import { formatDateInput, getDefaultFormValues } from './utils/date';
-import { injectMagnitudeStyles } from './utils/magnitude-scale';
-import { validateEarthquakeFilters } from './utils/validation';
+import { createEarthquakeMap } from '@/components/EarthquakeMap';
+import { createSidebar } from '@/components/Sidebar';
+import type { EarthquakeFilters, SidebarStatus } from '@/types/earthquake';
+import { EMPTY_COLLECTION } from '@/types/earthquake';
+import { fetchFromWorker } from '@/api/fetch-from-worker';
+import { formatDateInput, getDefaultFormValues } from '@/utils/date';
+import { injectMagnitudeStyles } from '@/utils/magnitude-scale';
+import { validateEarthquakeFilters } from '@/utils/validation';
 
 const root = document.querySelector<HTMLDivElement>('#app');
 
@@ -41,7 +41,24 @@ backdrop.setAttribute('aria-label', 'Close filters');
 
 const mapController = createEarthquakeMap();
 const defaultFormValues = getDefaultFormValues();
-let activeRequest: AbortController | undefined;
+
+const quakeWorker = new Worker(
+  new URL('./worker/quake.worker.ts', import.meta.url),
+  { type: 'module' },
+);
+let nextRequestId = 0;
+let activeRequestId = 0;
+const pendingRequests = new Map<number, (error: Error) => void>();
+
+quakeWorker.onerror = (errorEvent) => {
+  const error = new Error(errorEvent.message ?? 'Earthquake worker crashed');
+  console.error(error);
+
+  for (const reject of pendingRequests.values()) {
+    reject(error);
+  }
+  pendingRequests.clear();
+};
 
 const sidebarController = createSidebar({
   initialValues: defaultFormValues,
@@ -73,10 +90,8 @@ if (initialValidation.filters) {
 }
 
 async function searchEarthquakes(filters: EarthquakeFilters): Promise<void> {
-  activeRequest?.abort();
-
-  const request = new AbortController();
-  activeRequest = request;
+  const requestId = ++nextRequestId;
+  activeRequestId = requestId;
 
   sidebarController.setLoading(true);
   sidebarController.setStatus({
@@ -86,9 +101,9 @@ async function searchEarthquakes(filters: EarthquakeFilters): Promise<void> {
   });
 
   try {
-    const earthquakes = await fetchEarthquakes(filters, { signal: request.signal });
+    const earthquakes = await fetchFromWorker(filters, requestId, quakeWorker, pendingRequests);
 
-    if (activeRequest !== request) {
+    if (activeRequestId !== requestId) {
       return;
     }
 
@@ -97,7 +112,7 @@ async function searchEarthquakes(filters: EarthquakeFilters): Promise<void> {
 
     sidebarController.setStatus(buildSearchStatus(earthquakes.features.length, filters));
   } catch (error) {
-    if (isAbortError(error)) {
+    if (activeRequestId !== requestId) {
       return;
     }
 
@@ -108,9 +123,9 @@ async function searchEarthquakes(filters: EarthquakeFilters): Promise<void> {
       detail: error instanceof Error ? error.message : 'Unable to fetch earthquakes right now.',
     });
   } finally {
-    if (activeRequest === request) {
+    if (activeRequestId === requestId) {
       sidebarController.resetLoading();
-      activeRequest = undefined;
+      activeRequestId = 0;
     }
   }
 }
@@ -119,10 +134,6 @@ function setSidebarOpen(isOpen: boolean): void {
   appShell.classList.toggle('sidebar-open', isOpen);
   filterToggle.setAttribute('aria-expanded', String(isOpen));
   mapController.resize();
-}
-
-function isAbortError(error: unknown): boolean {
-  return error instanceof Error && error.name === 'AbortError';
 }
 
 function buildSearchStatus(count: number, filters: EarthquakeFilters): SidebarStatus {

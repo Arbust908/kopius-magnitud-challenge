@@ -1,4 +1,4 @@
-import type { EarthquakeCollection, EarthquakeFilters } from '../types/earthquake';
+import type { EarthquakeCollection, EarthquakeFilters } from '@/types/earthquake';
 
 const USGS_EARTHQUAKE_ENDPOINT = 'https://earthquake.usgs.gov/fdsnws/event/1/query';
 
@@ -16,9 +16,8 @@ export function buildEarthquakeQuery(filters: EarthquakeFilters): string {
 
 export async function fetchEarthquakes(
   filters: EarthquakeFilters,
-  requestInit: RequestInit = {},
 ): Promise<EarthquakeCollection> {
-  const response = await fetch(buildEarthquakeQuery(filters), requestInit);
+  const response = await fetch(buildEarthquakeQuery(filters));
 
   if (!response.ok) {
     throw new Error(`USGS request failed with status ${response.status}.`);

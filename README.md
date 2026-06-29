@@ -75,6 +75,15 @@ The circle layer uses data-driven styling:
 
 On every successful search, the existing source receives new GeoJSON via `setData()` rather than rebuilding the map.
 
+### Web Worker
+
+A dedicated Web Worker (`src/worker/quake.worker.ts`) moves the USGS fetch and `JSON.parse` off the main thread. Large result sets — thousands of features from a wide date range at low magnitude — no longer block the UI during deserialization.
+
+- The worker is a singleton created at module load via `new Worker(new URL(...), { type: 'module' })`.
+- The main thread sends `{ filters, requestId }` via `postMessage`.
+- The worker echoes the `requestId` back with the result. The main thread uses this to ignore stale replies from superseded searches, replacing the previous `AbortController` pattern (AbortSignal does not cross the worker boundary).
+- Data crosses the worker boundary via **structured clone**. The USGS response is JSON, and JSON values survive structured clone without copy overhead. For very large binary payloads, transferable `ArrayBuffer`s would avoid the copy — but that optimisation is not needed here since the data is text-based GeoJSON.
+
 ### Responsive behavior
 
 Desktop uses a two-column grid:
@@ -115,7 +124,6 @@ with these query params:
 
 Not implemented in the first pass:
 
-- **Web Worker**: useful if the app adds expensive client-side filtering or sorting for very large result sets.
 - **IndexedDB**: useful for structured caching by filter key, with an expiration policy.
 - **Service Worker**: useful for offline app shell caching, but it does not replace IndexedDB for queryable earthquake data.
 

@@ -2,33 +2,29 @@ import { describe, it, expect } from 'vitest';
 import { formatDateInput, formatDepth, formatEventTime } from './date';
 
 describe('formatDateInput', () => {
+  // Mirror the same UTC formatter so assertions are locale-agnostic
+  const expectedDate = (y: number, m: number, d: number) =>
+    new Intl.DateTimeFormat(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC',
+    }).format(new Date(Date.UTC(y, m - 1, d)));
+
   it('formats a YYYY-MM-DD string to a readable date', () => {
-    const result = formatDateInput('2026-06-29');
-    // Exact format depends on locale, but should contain month, day, year
-    expect(result).toMatch(/Jun/);
-    expect(result).toMatch(/29/);
-    expect(result).toMatch(/2026/);
+    expect(formatDateInput('2026-06-29')).toBe(expectedDate(2026, 6, 29));
   });
 
   it('formats January 1st correctly', () => {
-    const result = formatDateInput('2025-01-01');
-    expect(result).toMatch(/Jan/);
-    expect(result).toMatch(/1/);
-    expect(result).toMatch(/2025/);
+    expect(formatDateInput('2025-01-01')).toBe(expectedDate(2025, 1, 1));
   });
 
   it('formats December 31st correctly', () => {
-    const result = formatDateInput('2024-12-31');
-    expect(result).toMatch(/Dec/);
-    expect(result).toMatch(/31/);
-    expect(result).toMatch(/2024/);
+    expect(formatDateInput('2024-12-31')).toBe(expectedDate(2024, 12, 31));
   });
 
   it('handles leap year date', () => {
-    const result = formatDateInput('2024-02-29');
-    expect(result).toMatch(/Feb/);
-    expect(result).toMatch(/29/);
-    expect(result).toMatch(/2024/);
+    expect(formatDateInput('2024-02-29')).toBe(expectedDate(2024, 2, 29));
   });
 });
 

@@ -2,7 +2,7 @@ import type {
   EarthquakeFilters,
   EarthquakeFormValues,
   ValidationErrors,
-} from '../types/earthquake';
+} from '@/types/earthquake';
 
 export interface ValidationResult {
   errors: ValidationErrors;
