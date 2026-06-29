@@ -4,15 +4,11 @@ import './styles/main.css';
 import { fetchEarthquakes } from './api/earthquakes';
 import { createEarthquakeMap } from './components/EarthquakeMap';
 import { createSidebar } from './components/Sidebar';
-import type { EarthquakeCollection, EarthquakeFilters, SidebarStatus } from './types/earthquake';
+import type { EarthquakeFilters, SidebarStatus } from './types/earthquake';
+import { EMPTY_COLLECTION } from './types/earthquake';
 import { formatDateInput, getDefaultFormValues } from './utils/date';
 import { injectMagnitudeStyles } from './utils/magnitude-scale';
 import { validateEarthquakeFilters } from './utils/validation';
-
-const EMPTY_COLLECTION: EarthquakeCollection = {
-  type: 'FeatureCollection',
-  features: [],
-};
 
 const root = document.querySelector<HTMLDivElement>('#app');
 

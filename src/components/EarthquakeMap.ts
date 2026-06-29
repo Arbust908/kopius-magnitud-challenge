@@ -11,15 +11,12 @@ import {
   type MapLayerMouseEvent,
 } from 'maplibre-gl';
 import type { EarthquakeCollection } from '../types/earthquake';
+import { EMPTY_COLLECTION } from '../types/earthquake';
 import { formatDepth, formatEventTime } from '../utils/date';
 import { magnitudeToColor, buildCircleColorExpression, buildCircleRadiusExpression } from '../utils/magnitude-scale';
 
 const SOURCE_ID = 'earthquakes';
 const LAYER_ID = 'earthquake-circles';
-const EMPTY_COLLECTION: EarthquakeCollection = {
-  type: 'FeatureCollection',
-  features: [],
-};
 
 const INITIAL_CENTER: LngLatLike = [-122.33, 37.96];
 const MAP_STYLE = 'https://tiles.openfreemap.org/styles/bright';

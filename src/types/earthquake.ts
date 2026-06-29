@@ -66,6 +66,11 @@ export interface EarthquakeFilters {
 
 export type ValidationErrors = Partial<Record<keyof EarthquakeFormValues, string>>;
 
+export const EMPTY_COLLECTION: EarthquakeCollection = {
+  type: 'FeatureCollection',
+  features: [],
+};
+
 export type SidebarStatusType = 'idle' | 'loading' | 'success' | 'empty' | 'error';
 
 export interface SidebarStatus {
