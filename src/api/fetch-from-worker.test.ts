@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import type { WorkerResponse } from './worker/quake.worker';
-import { EMPTY_COLLECTION } from './types/earthquake';
-import type { EarthquakeCollection, EarthquakeFilters } from './types/earthquake';
-import { fetchFromWorker } from './api/fetch-from-worker';
+import type { WorkerResponse } from '@/worker/quake.worker';
+import { EMPTY_COLLECTION } from '@/types/earthquake';
+import type { EarthquakeCollection, EarthquakeFilters } from '@/types/earthquake';
+import { fetchFromWorker } from './fetch-from-worker';
 
 const filters: EarthquakeFilters = {
   startTime: '2026-01-01',
@@ -122,6 +122,37 @@ describe('fetchFromWorker', () => {
       filters,
       requestId: 42,
     });
+  });
+
+  it('rejects and cleans up when postMessage throws', async () => {
+    const worker = makeWorker();
+    worker.postMessage.mockImplementation(() => {
+      throw new DOMException('Failed to execute', 'DataCloneError');
+    });
+    const pending = new Map<number, (error: Error) => void>();
+
+    const promise = fetchFromWorker(filters, 10, worker, pending);
+
+    await expect(promise).rejects.toThrow('Failed to execute');
+    expect(pending.has(10)).toBe(false);
+    expect(worker.removeEventListener).toHaveBeenCalled();
+  });
+
+  it('cleans up listener when pending rejection is invoked (worker.onerror path)', async () => {
+    const worker = makeWorker();
+    const pending = new Map<number, (error: Error) => void>();
+
+    const promise = fetchFromWorker(filters, 11, worker, pending);
+    promise.catch(() => {}); // suppress unhandled rejection — we only care about cleanup
+
+    expect(pending.has(11)).toBe(true);
+
+    // Simulate worker.onerror path — main.ts iterates pending and calls each reject
+    const reject = pending.get(11)!;
+    reject(new Error('Worker crashed'));
+
+    expect(pending.has(11)).toBe(false);
+    expect(worker.removeEventListener).toHaveBeenCalled();
   });
 
   it('only the matching response resolves — superseding request does not resolve the older promise', async () => {

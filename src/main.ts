@@ -1,14 +1,14 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './styles/main.css';
 
-import { createEarthquakeMap } from './components/EarthquakeMap';
-import { createSidebar } from './components/Sidebar';
-import type { EarthquakeFilters, SidebarStatus } from './types/earthquake';
-import { EMPTY_COLLECTION } from './types/earthquake';
-import { fetchFromWorker } from './api/fetch-from-worker';
-import { formatDateInput, getDefaultFormValues } from './utils/date';
-import { injectMagnitudeStyles } from './utils/magnitude-scale';
-import { validateEarthquakeFilters } from './utils/validation';
+import { createEarthquakeMap } from '@/components/EarthquakeMap';
+import { createSidebar } from '@/components/Sidebar';
+import type { EarthquakeFilters, SidebarStatus } from '@/types/earthquake';
+import { EMPTY_COLLECTION } from '@/types/earthquake';
+import { fetchFromWorker } from '@/api/fetch-from-worker';
+import { formatDateInput, getDefaultFormValues } from '@/utils/date';
+import { injectMagnitudeStyles } from '@/utils/magnitude-scale';
+import { validateEarthquakeFilters } from '@/utils/validation';
 
 const root = document.querySelector<HTMLDivElement>('#app');
 

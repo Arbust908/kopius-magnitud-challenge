@@ -1,4 +1,4 @@
-import type { EarthquakeCollection, EarthquakeFilters } from '../types/earthquake';
+import type { EarthquakeCollection, EarthquakeFilters } from '@/types/earthquake';
 
 const USGS_EARTHQUAKE_ENDPOINT = 'https://earthquake.usgs.gov/fdsnws/event/1/query';
 

@@ -1,4 +1,4 @@
-import { findElement } from '../utils/dom';
+import { findElement } from '@/utils/dom';
 import {
   GeoJSONSource,
   LngLatBounds,
@@ -10,11 +10,11 @@ import {
   type LngLatLike,
   type MapLayerMouseEvent,
 } from 'maplibre-gl';
-import type { EarthquakeCollection } from '../types/earthquake';
-import { EMPTY_COLLECTION } from '../types/earthquake';
-import { formatDepth, formatEventTime } from '../utils/date';
+import type { EarthquakeCollection } from '@/types/earthquake';
+import { EMPTY_COLLECTION } from '@/types/earthquake';
+import { formatDepth, formatEventTime } from '@/utils/date';
 import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
-import { BAND_CSS_NAMES, MAGNITUDE_BANDS, magnitudeToColor } from '../utils/magnitude-scale';
+import { BAND_CSS_NAMES, MAGNITUDE_BANDS, magnitudeToColor } from '@/utils/magnitude-scale';
 
 const SOURCE_ID = 'earthquakes';
 const LAYER_ID = 'earthquake-circles';

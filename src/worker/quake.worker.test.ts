@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
 import type { WorkerRequest } from './quake.worker';
-import { EMPTY_COLLECTION } from '../types/earthquake';
+import { EMPTY_COLLECTION } from '@/types/earthquake';
 
 const mockPostMessage = vi.fn();
 

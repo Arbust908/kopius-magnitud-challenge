@@ -1,13 +1,13 @@
-import { findElement } from '../utils/dom';
+import { findElement } from '@/utils/dom';
 import type {
   EarthquakeFilters,
   EarthquakeFormValues,
   SidebarStatus,
   ValidationErrors,
-} from '../types/earthquake';
-import { toDateInputValue } from '../utils/date';
-import { validateEarthquakeFilters } from '../utils/validation';
-import { MAGNITUDE_BANDS, BAND_CSS_NAMES } from '../utils/magnitude-scale';
+} from '@/types/earthquake';
+import { toDateInputValue } from '@/utils/date';
+import { validateEarthquakeFilters } from '@/utils/validation';
+import { MAGNITUDE_BANDS, BAND_CSS_NAMES } from '@/utils/magnitude-scale';
 
 interface SidebarOptions {
   initialValues: EarthquakeFormValues;

@@ -1,5 +1,5 @@
-import type { EarthquakeCollection, EarthquakeFilters } from '../types/earthquake';
-import type { WorkerRequest, WorkerResponse } from '../worker/quake.worker';
+import type { EarthquakeCollection, EarthquakeFilters } from '@/types/earthquake';
+import type { WorkerRequest, WorkerResponse } from '@/worker/quake.worker';
 
 export function fetchFromWorker(
   filters: EarthquakeFilters,
@@ -8,12 +8,21 @@ export function fetchFromWorker(
   pending: Map<number, (error: Error) => void>,
 ): Promise<EarthquakeCollection> {
   return new Promise((resolve, reject) => {
+    function cleanup() {
+      worker.removeEventListener('message', handler);
+      pending.delete(requestId);
+    }
+
+    function fail(error: Error) {
+      cleanup();
+      reject(error);
+    }
+
     function handler(event: MessageEvent<WorkerResponse>): void {
       if (event.data.requestId !== requestId) {
         return;
       }
-      worker.removeEventListener('message', handler);
-      pending.delete(requestId);
+      cleanup();
 
       if (event.data.ok) {
         resolve(event.data.data);
@@ -22,8 +31,12 @@ export function fetchFromWorker(
       }
     }
 
-    pending.set(requestId, reject);
+    pending.set(requestId, fail);
     worker.addEventListener('message', handler);
-    worker.postMessage({ filters, requestId } satisfies WorkerRequest);
+    try {
+      worker.postMessage({ filters, requestId } satisfies WorkerRequest);
+    } catch (error) {
+      fail(error instanceof Error ? error : new Error(String(error)));
+    }
   });
 }

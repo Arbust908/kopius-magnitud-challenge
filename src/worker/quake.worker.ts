@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
-import { fetchEarthquakes } from '../api/earthquakes';
-import type { EarthquakeCollection, EarthquakeFilters } from '../types/earthquake';
+import { fetchEarthquakes } from '@/api/earthquakes';
+import type { EarthquakeCollection, EarthquakeFilters } from '@/types/earthquake';
 
 export interface WorkerRequest {
   filters: EarthquakeFilters;
