@@ -25,11 +25,7 @@
   --accent-strong: oklch(55% 0.21 236);
   --accent-soft: oklch(88% 0.075 224);
   --accent-ink: oklch(97% 0.01 225);
-  /* Match the map circle paint colors exactly so the legend stays a true key. */
-  --minor: #9ca3af;
-  --moderate: #f6c453;
-  --strong: #f97316;
-  --major: #dc2626;
+  /* --minor, --moderate, --strong, --major injected from magnitude-scale.ts */
   --success: oklch(61% 0.12 154);
   --warning: oklch(75% 0.14 86);
   --error: oklch(58% 0.18 27);
@@ -153,6 +149,7 @@ input:focus-visible {
   overflow-y: auto;
   transform: translateX(-105%);
   transition: transform 220ms cubic-bezier(0.25, 1, 0.5, 1);
+  max-width: min(90vw, 24rem);
 }
 
 .sidebar-open .sidebar-panel {
@@ -163,7 +160,6 @@ input:focus-visible {
 .sidebar-card {
   position: relative;
   display: flex;
-  max-width: min(90vw, 22rem);
   min-height: calc(100vh - 1.5rem);
   min-height: calc(100dvh - 1.5rem);
   flex-direction: column;
@@ -172,7 +168,6 @@ input:focus-visible {
   border: 1px solid var(--line);
   border-radius: 1rem;
   background: var(--panel-raised);
-  box-shadow: var(--shadow-tight), var(--inner-light);
 }
 
 .sidebar-card__header {
@@ -771,24 +766,23 @@ h1 {
    ===================================================================== */
 
 @media (min-width: 420px) {
-  .daterange {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 0;
-    align-items: center;
-    border: 1px solid var(--line);
-    border-radius: 0.5rem;
-    background: var(--panel-raised);
-    box-shadow: var(--inner-light);
-    transition: border-color var(--motion), box-shadow var(--motion);
-  }
+.daterange {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--panel-raised);
+  box-shadow: var(--inner-light);
+  transition: border-color var(--motion), box-shadow var(--motion);
 
-  .daterange:focus-within {
+  &:focus-within {
     border-color: var(--accent);
     box-shadow: 0 0 0 4px var(--focus), var(--inner-light);
   }
 
-  .daterange input {
+  input {
     width: 100%;
     min-height: 3rem;
     border: 0;
@@ -798,17 +792,18 @@ h1 {
     background: transparent;
     outline: none;
     color-scheme: light dark;
-  }
 
-  .daterange input:first-child {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-  }
+    &:first-child {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
 
-  .daterange input:last-child {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
+    &:last-child {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
   }
+}
 
   .daterange__sep {
     display: block;
@@ -824,32 +819,20 @@ h1 {
   .earthquake-popup {
     min-width: min(18rem, 82vw);
     grid-template-columns: 4.2rem minmax(0, 1fr);
-    padding: 0.9rem 0.95rem 0.95rem;
-  }
-
-  .earthquake-popup dl div {
-    grid-template-columns: 3.45rem minmax(0, 1fr);
-    gap: 0.55rem;
-  }
-
-  .earthquake-popup dt,
-  .earthquake-popup dd {
-    font-size: 0.82rem;
-  }
-}
-
-/* =====================================================================
-   BREAKPOINT: min-width 600px — small tablets
-   ===================================================================== */
-
-@media (min-width: 600px) {
-  .sidebar-panel {
     padding: 1rem;
+
+    dl div {
+      grid-template-columns: 3.45rem minmax(0, 1fr);
+      gap: 0.55rem;
+    }
+
+    dt,
+    dd {
+      font-size: 0.82rem;
+    }
   }
 
-  .sidebar-card {
-    width: min(88vw, 22rem);
-  }
+
 }
 
 /* =====================================================================
@@ -860,6 +843,7 @@ h1 {
 
   .sidebar-panel {
     transform: translateX(0);
+    padding: 1rem;
   }
 
   .filter-toggle,

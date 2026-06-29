@@ -6,6 +6,7 @@ import { createEarthquakeMap } from './components/EarthquakeMap';
 import { createSidebar } from './components/Sidebar';
 import type { EarthquakeCollection, EarthquakeFilters, SidebarStatus } from './types/earthquake';
 import { formatDateInput, getDefaultFormValues } from './utils/date';
+import { injectMagnitudeStyles } from './utils/magnitude-scale';
 import { validateEarthquakeFilters } from './utils/validation';
 
 const EMPTY_COLLECTION: EarthquakeCollection = {
@@ -18,6 +19,8 @@ const root = document.querySelector<HTMLDivElement>('#app');
 if (!root) {
   throw new Error('Missing #app root element.');
 }
+
+injectMagnitudeStyles();
 
 const appShell = document.createElement('main');
 appShell.className = 'app-shell';

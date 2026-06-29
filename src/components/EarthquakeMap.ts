@@ -11,6 +11,7 @@ import {
 } from 'maplibre-gl';
 import type { EarthquakeCollection } from '../types/earthquake';
 import { formatDepth, formatEventTime } from '../utils/date';
+import { magnitudeToColor, buildCircleColorExpression, buildCircleRadiusExpression } from '../utils/magnitude-scale';
 
 const SOURCE_ID = 'earthquakes';
 const LAYER_ID = 'earthquake-circles';
@@ -93,32 +94,8 @@ function addEarthquakeLayer(map: Map): void {
       type: 'circle',
       source: SOURCE_ID,
       paint: {
-        'circle-radius': [
-          'interpolate',
-          ['linear'],
-          ['coalesce', ['get', 'mag'], 0],
-          0,
-          4,
-          3,
-          7,
-          5,
-          13,
-          7,
-          24,
-        ],
-        'circle-color': [
-          'step',
-          ['coalesce', ['get', 'mag'], 0],
-          '#9ca3af',
-          4,
-          '#f6c453',
-          5,
-          '#f97316',
-          6,
-          '#dc2626',
-          7,
-          '#7f1d1d',
-        ],
+        'circle-radius': buildCircleRadiusExpression(),
+        'circle-color': buildCircleColorExpression(),
         'circle-opacity': 0.82,
         'circle-stroke-color': 'rgba(248, 244, 236, 0.95)',
         'circle-stroke-width': 1.25,
@@ -159,7 +136,7 @@ function wirePopup(map: Map): void {
     const depth = typeof props._depth === 'number' ? props._depth : (coords[2] ?? 0);
     const mag = typeof props.mag === 'number' ? props.mag : null;
     const magnitude = formatMagnitude(mag);
-    const magnitudeColor = getMagnitudeColor(mag);
+    const magnitudeColor = magnitudeToColor(mag);
     const place = typeof props.place === 'string' ? props.place : 'Unknown location';
     const time = typeof props.time === 'number' ? props.time : null;
 
@@ -216,13 +193,6 @@ function formatMagnitude(magnitude: number | null): string {
   return magnitude === null ? 'Unavailable' : magnitude.toFixed(1);
 }
 
-function getMagnitudeColor(magnitude: number | null): string {
-  if (magnitude === null) return '#9ca3af';
-  if (magnitude < 4) return '#9ca3af';
-  if (magnitude < 5) return '#f6c453';
-  if (magnitude < 6) return '#f97316';
-  return '#dc2626';
-}
 
 function escapeHtml(value: string): string {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
