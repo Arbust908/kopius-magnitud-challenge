@@ -38,7 +38,17 @@ function isEarthquakeCollection(data: unknown): data is EarthquakeCollection {
     return false;
   }
 
-  return data.type === 'FeatureCollection' && Array.isArray(data.features);
+  if (data.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
+    return false;
+  }
+
+  return data.features.every(
+    (f: unknown) =>
+      isRecord(f) &&
+      isRecord(f.geometry) &&
+      Array.isArray(f.geometry.coordinates) &&
+      f.geometry.coordinates.length >= 2,
+  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
