@@ -6,6 +6,7 @@ import { createSidebar } from '@/components/Sidebar';
 import type { EarthquakeFilters, SidebarStatus } from '@/types/earthquake';
 import { EMPTY_COLLECTION } from '@/types/earthquake';
 import { fetchFromWorker } from '@/api/fetch-from-worker';
+import { getCachedEarthquake, setCachedEarthquake } from '@/cache/db';
 import { formatDateInput, getDefaultFormValues } from '@/utils/date';
 import { injectMagnitudeStyles } from '@/utils/magnitude-scale';
 import { validateEarthquakeFilters } from '@/utils/validation';
@@ -101,11 +102,38 @@ async function searchEarthquakes(filters: EarthquakeFilters): Promise<void> {
   });
 
   try {
+    const cached = await getCachedEarthquake(filters);
+
+    if (activeRequestId !== requestId) {
+      return;
+    }
+
+    if (cached) {
+      mapController.setEarthquakes(cached.features.length === 0 ? EMPTY_COLLECTION : cached);
+      setSidebarOpen(false);
+
+      const status = buildSearchStatus(cached.features.length, filters);
+      sidebarController.setStatus({
+        ...status,
+        detail: status.detail ? `${status.detail} (from cache)` : '(from cache)',
+      });
+
+      sidebarController.resetLoading();
+      activeRequestId = 0;
+      return;
+    }
+  } catch {
+    // IndexedDB unavailable — fall through to network fetch
+  }
+
+  try {
     const earthquakes = await fetchFromWorker(filters, requestId, quakeWorker, pendingRequests);
 
     if (activeRequestId !== requestId) {
       return;
     }
+
+    setCachedEarthquake(filters, earthquakes).catch(() => {});
 
     mapController.setEarthquakes(earthquakes.features.length === 0 ? EMPTY_COLLECTION : earthquakes);
     setSidebarOpen(false);
