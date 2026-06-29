@@ -19,6 +19,7 @@ export interface SidebarController {
   element: HTMLElement;
   setLoading: (isLoading: boolean) => void;
   setStatus: (status: SidebarStatus) => void;
+  resetLoading: () => void;
 }
 
 function buildLegendHTML(): string {
@@ -153,11 +154,9 @@ export function createSidebar(options: SidebarOptions): SidebarController {
   const magnitudeInput = getInput(form, 'minMagnitude');
   const magnitudeDisplay = findElement<HTMLOutputElement>(form, '[data-magnitude-display]');
 
-  const formatMagnitude = (value: string) => parseFloat(value).toFixed(1);
-
-  magnitudeDisplay.textContent = formatMagnitude(magnitudeInput.value);
+  magnitudeDisplay.textContent = parseFloat(magnitudeInput.value).toFixed(1);
   magnitudeInput.addEventListener('input', () => {
-    magnitudeDisplay.textContent = formatMagnitude(magnitudeInput.value);
+    magnitudeDisplay.textContent = parseFloat(magnitudeInput.value).toFixed(1);
   });
 
   return {
@@ -178,6 +177,15 @@ export function createSidebar(options: SidebarOptions): SidebarController {
         const detail = document.createElement('span');
         detail.textContent = status.detail;
         statusElement.append(detail);
+      }
+    },
+    resetLoading() {
+      submitButton.disabled = false;
+      submitButton.innerHTML = 'Search <span class="button__suffix">earthquakes</span>';
+
+      if (statusElement.classList.contains('status-message--loading')) {
+        statusElement.className = 'status-message status-message--idle';
+        statusElement.innerHTML = '<strong>Ready</strong><span>Use the default 30 day range or narrow the search.</span>';
       }
     },
   };

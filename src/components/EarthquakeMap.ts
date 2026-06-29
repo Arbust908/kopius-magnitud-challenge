@@ -13,7 +13,8 @@ import {
 import type { EarthquakeCollection } from '../types/earthquake';
 import { EMPTY_COLLECTION } from '../types/earthquake';
 import { formatDepth, formatEventTime } from '../utils/date';
-import { magnitudeToColor, buildCircleColorExpression, buildCircleRadiusExpression } from '../utils/magnitude-scale';
+import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
+import { BAND_CSS_NAMES, MAGNITUDE_BANDS, magnitudeToColor } from '../utils/magnitude-scale';
 
 const SOURCE_ID = 'earthquakes';
 const LAYER_ID = 'earthquake-circles';
@@ -74,6 +75,27 @@ export function createEarthquakeMap(): EarthquakeMapController {
       queueMicrotask(() => map.resize());
     },
   };
+}
+
+/** Build a MapLibre circle-color step expression from the bands. */
+function buildCircleColorExpression(): ExpressionSpecification {
+  const bands = BAND_CSS_NAMES.map(name => MAGNITUDE_BANDS[name]!);
+  const [first, ...rest] = bands;
+  const expr: unknown[] = ['step', ['coalesce', ['get', 'mag'], 0], first!.color];
+  for (const band of rest) {
+    expr.push(band.min, band.color);
+  }
+  return expr as ExpressionSpecification;
+}
+
+/** Build a MapLibre circle-radius interpolate expression from the bands. */
+function buildCircleRadiusExpression(): ExpressionSpecification {
+  const bands = BAND_CSS_NAMES.map(name => MAGNITUDE_BANDS[name]!);
+  const expr: unknown[] = ['interpolate', ['linear'], ['coalesce', ['get', 'mag'], 0]];
+  for (const band of bands) {
+    expr.push(band.min, band.radius);
+  }
+  return expr as ExpressionSpecification;
 }
 
 function addEarthquakeLayer(map: Map): void {
@@ -142,8 +164,8 @@ function buildPopupHTML(data: EarthquakePopupData): string {
       <p class="earthquake-popup__label">Event detail</p>
       <strong>${escapeHtml(data.place)}</strong>
       <dl>
-        <div><dt>Time</dt><dd>${escapeHtml(formatEventTime(data.time))}</dd></div>
-        <div><dt>Depth</dt><dd>${escapeHtml(formatDepth(data.depth))}</dd></div>
+        <div><dt>Time</dt><dd>${formatEventTime(data.time)}</dd></div>
+        <div><dt>Depth</dt><dd>${formatDepth(data.depth)}</dd></div>
       </dl>
     </div>
   </article>`;

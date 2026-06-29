@@ -488,17 +488,7 @@ h1 {
     border: 0;
     border-radius: 999px;
     padding: 0;
-    background: linear-gradient(
-        to right,
-        var(--minor) 0%,
-        var(--minor) 29.4%,
-        var(--moderate) 35.3%,
-        var(--moderate) 47.1%,
-        var(--strong) 52.9%,
-        var(--strong) 58.8%,
-        var(--major) 64.7%,
-        var(--major) 100%
-      );
+    background: var(--slider-gradient);
     box-shadow: none;
     appearance: none;
     -webkit-appearance: none;

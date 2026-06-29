@@ -92,33 +92,10 @@ async function searchEarthquakes(filters: EarthquakeFilters): Promise<void> {
       return;
     }
 
-    mapController.setEarthquakes(earthquakes);
+    mapController.setEarthquakes(earthquakes.features.length === 0 ? EMPTY_COLLECTION : earthquakes);
     setSidebarOpen(false);
 
-    const count = earthquakes.features.length;
-
-    if (count === 0) {
-      sidebarController.setStatus({
-        type: 'empty',
-        title: 'No earthquakes found',
-        detail: 'Try widening the date range or lowering the minimum magnitude.',
-      });
-      return;
-    }
-
-    const successTitle = count === 1 ? '1 earthquake found' : `${count.toLocaleString()} earthquakes found`;
-    const magnitudeLabel = filters.minMagnitude >= 9.5
-      ? `magnitude ${filters.minMagnitude}`
-      : `magnitude ${filters.minMagnitude} and up`;
-    const successDetail = `Showing events for ${magnitudeLabel} between ${formatDateInput(filters.startTime)} – ${formatDateInput(filters.endTime)}`;
-
-    const successStatus = {
-      type: 'success',
-      title: successTitle,
-      detail: successDetail,
-    } satisfies SidebarStatus;
-
-    sidebarController.setStatus(successStatus);
+    sidebarController.setStatus(buildSearchStatus(earthquakes.features.length, filters));
   } catch (error) {
     if (isAbortError(error)) {
       return;
@@ -132,7 +109,7 @@ async function searchEarthquakes(filters: EarthquakeFilters): Promise<void> {
     });
   } finally {
     if (activeRequest === request) {
-      sidebarController.setLoading(false);
+      sidebarController.resetLoading();
       activeRequest = undefined;
     }
   }
@@ -146,4 +123,22 @@ function setSidebarOpen(isOpen: boolean): void {
 
 function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === 'AbortError';
+}
+
+function buildSearchStatus(count: number, filters: EarthquakeFilters): SidebarStatus {
+  if (count === 0) {
+    return {
+      type: 'empty',
+      title: 'No earthquakes found',
+      detail: 'Try widening the date range or lowering the minimum magnitude.',
+    };
+  }
+
+  const title = count === 1 ? '1 earthquake found' : `${count.toLocaleString()} earthquakes found`;
+  const magnitudeLabel = filters.minMagnitude >= 9.5
+    ? `magnitude ${filters.minMagnitude}`
+    : `magnitude ${filters.minMagnitude} and up`;
+  const detail = `Showing events for ${magnitudeLabel} between ${formatDateInput(filters.startTime)} – ${formatDateInput(filters.endTime)}`;
+
+  return { type: 'success', title, detail } satisfies SidebarStatus;
 }

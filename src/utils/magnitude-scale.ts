@@ -1,5 +1,3 @@
-import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec';
-
 interface MagnitudeBand {
   min: number;
   max: number;
@@ -7,6 +5,7 @@ interface MagnitudeBand {
   radius: number;
   label: string;
 }
+/** CSS class suffixes for each band — used by legend dots and CSS custom properties. */
 export const BAND_CSS_NAMES = ['minor', 'moderate', 'strong', 'major'] as const;
 type BandCssName = (typeof BAND_CSS_NAMES)[number];
 
@@ -20,8 +19,6 @@ export const MAGNITUDE_BANDS: Record<BandCssName, MagnitudeBand> = {
 
 
 
-/** CSS class suffixes for each band — used by legend dots and CSS custom properties. */
-
 /** Look up color for a magnitude value. */
 export function magnitudeToColor(magnitude: number | null): string {
   if (magnitude === null) return MAGNITUDE_BANDS.minor.color;
@@ -29,26 +26,6 @@ export function magnitudeToColor(magnitude: number | null): string {
     if (magnitude < band.max) return band.color;
   }
   return MAGNITUDE_BANDS.major.color;
-}
-
-/** Build a MapLibre circle-color step expression from the bands. */
-export function buildCircleColorExpression(): ExpressionSpecification {
-  const first = MAGNITUDE_BANDS.minor;
-  const rest = Object.values(MAGNITUDE_BANDS).slice(1);
-  const expr: unknown[] = ['step', ['coalesce', ['get', 'mag'], 0], first.color];
-  for (const band of rest) {
-    expr.push(band.min, band.color);
-  }
-  return expr as ExpressionSpecification;
-}
-
-/** Build a MapLibre circle-radius interpolate expression from the bands. */
-export function buildCircleRadiusExpression(): ExpressionSpecification {
-  const expr: unknown[] = ['interpolate', ['linear'], ['coalesce', ['get', 'mag'], 0]];
-  for (const band of Object.values(MAGNITUDE_BANDS)) {
-    expr.push(band.min, band.radius);
-  }
-  return expr as ExpressionSpecification;
 }
 
 const SLIDER_MIN = 1;
@@ -77,11 +54,11 @@ export function buildSliderGradient(): string {
  * Call once at startup so CSS that references var(--minor) etc. stays in sync.
  */
 export function injectMagnitudeStyles(): void {
-  const vars = Object.values(MAGNITUDE_BANDS).slice(0, BAND_CSS_NAMES.length).map(
-    (band, i) => `--${BAND_CSS_NAMES[i]}: ${band.color}`,
+  const vars = BAND_CSS_NAMES.map(
+    (name) => `--${name}: ${MAGNITUDE_BANDS[name].color}`,
   ).join('; ');
 
   const style = document.createElement('style');
-  style.textContent = `:root { ${vars}; }`;
+  style.textContent = `:root { ${vars}; --slider-gradient: ${buildSliderGradient()}; }`;
   document.head.appendChild(style);
 }
