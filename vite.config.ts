@@ -7,6 +7,7 @@ export default defineConfig({
       '@': resolve(import.meta.dirname, 'src'),
     },
   },
+  base: '/kopius-magnitud-challenge/',
   server: {
     open: true,
   },

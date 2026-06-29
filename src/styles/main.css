@@ -829,7 +829,6 @@ h1 {
 @media (min-width: 801px) {
   .sidebar-panel {
     transform: translateX(0);
-    padding: 1rem;
   }
 
   .filter-toggle,
