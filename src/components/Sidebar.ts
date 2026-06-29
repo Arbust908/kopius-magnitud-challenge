@@ -30,8 +30,6 @@ export function createSidebar(options: SidebarOptions): SidebarController {
   element.className = 'sidebar-card';
   element.setAttribute('aria-label', 'Earthquake filters');
   element.innerHTML = `
-    <div class="sidebar-card__handle" aria-hidden="true"></div>
-
     <div class="sidebar-card__header">
       <div>
         <h1>Earthquake Explorer</h1>
@@ -96,7 +94,7 @@ export function createSidebar(options: SidebarOptions): SidebarController {
     </div>
 
         <div class="form-actions">
-          <button class="button button--primary" type="submit">Search earthquakes</button>
+          <button class="button button--primary" type="submit">Search <span class="button__suffix">earthquakes</span></button>
           <button class="button button--secondary" type="button" data-reset>Reset</button>
         </div>
       </form>
@@ -174,7 +172,7 @@ export function createSidebar(options: SidebarOptions): SidebarController {
     element,
     setLoading(isLoading) {
       submitButton.disabled = isLoading;
-      submitButton.textContent = isLoading ? 'Searching…' : 'Search earthquakes';
+      submitButton.innerHTML = isLoading ? 'Searching…' : 'Search <span class="button__suffix">earthquakes</span>';
     },
     setStatus(status) {
       statusElement.className = `status-message status-message--${status.type}`;
@@ -218,6 +216,7 @@ function renderErrors(form: HTMLFormElement, errors: ValidationErrors): void {
 
     input.toggleAttribute('aria-invalid', Boolean(message));
     errorElement.textContent = message;
+    errorElement.classList.toggle('has-error', Boolean(message));
   }
 }
 
@@ -227,6 +226,7 @@ function clearFieldError(form: HTMLFormElement, fieldName: FieldName): void {
 
   input.removeAttribute('aria-invalid');
   errorElement.textContent = '';
+  errorElement.classList.remove('has-error');
 }
 
 function getInput(form: HTMLFormElement, fieldName: FieldName): HTMLInputElement {
