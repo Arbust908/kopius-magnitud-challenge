@@ -8,16 +8,20 @@ const popupDateFormatter = new Intl.DateTimeFormat(undefined, {
   timeStyle: 'short',
 });
 
-/** Converts an ISO date string (YYYY-MM-DD) to a human-readable form like "Jun 29, 2026". */
+const utcDateFormatter = new Intl.DateTimeFormat(undefined, {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  timeZone: 'UTC',
+});
+
+/** Converts an ISO date string (YYYY-MM-DD) to a human-readable form like "Jun 29, 2026".
+ *  USGS earthquake dates are UTC — parses and formats in UTC to avoid timezone drift. */
 export function formatDateInput(isoDate: string): string {
   const [year, month, day] = isoDate.split('-');
-  const date = new Date(Number(year), Number(month) - 1, Number(day));
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
 
-  return date.toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
+  return utcDateFormatter.format(date);
 }
 
 export function toDateInputValue(date: Date): string {
