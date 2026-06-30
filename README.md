@@ -84,6 +84,21 @@ A dedicated Web Worker (`src/worker/quake.worker.ts`) moves the USGS fetch and `
 - The worker echoes the `requestId` back with the result. The main thread uses this to ignore stale replies from superseded searches, replacing the previous `AbortController` pattern (AbortSignal does not cross the worker boundary).
 - Data crosses the worker boundary via **structured clone**. The USGS response is JSON, and JSON values survive structured clone without copy overhead. For very large binary payloads, transferable `ArrayBuffer`s would avoid the copy — but that optimisation is not needed here since the data is text-based GeoJSON.
 
+### IndexedDB Cache
+
+`src/cache/db.ts` caches USGS responses in IndexedDB using the `idb` wrapper library.
+
+**Cache key**: Normalized from filters — `<startTime>|<endTime>|<minMagnitude>`. Only exact matches return a cached result. Overlapping date ranges that would need client-side filtering are treated as misses; this is an intentional trade-off since the USGS API is fast and the common case is re-submitting identical filters.
+
+**TTL policy**:
+
+- **Historical ranges** (endDate strictly before today): cached indefinitely. Past earthquake data does not change.
+- **Recent ranges** (endDate is today or later): cached for 5 minutes. The USGS may still add new events to the current day.
+
+**Size limit**: At most 50 entries. When full, the oldest entry (by `fetchedAt` timestamp) is evicted.
+
+**Architecture**: The cache lives entirely on the main thread. `main.ts` checks the cache before dispatching to the Web Worker. The worker is unaware of caching. Cache writes are fire-and-forget — a write failure (e.g. quota exceeded) does not block the UI; the data is still displayed from the network response.
+
 ### Responsive behavior
 
 Desktop uses a two-column grid:
@@ -122,9 +137,10 @@ with these query params:
 
 ## Bonus items
 
-Not implemented in the first pass:
+Implemented:
 
-- **IndexedDB**: useful for structured caching by filter key, with an expiration policy.
+- **IndexedDB**: persistent cache by filter key with TTL and LRU eviction. See the [IndexedDB Cache](#indexeddb-cache) section above.
+
+Not implemented:
+
 - **Service Worker**: useful for offline app shell caching, but it does not replace IndexedDB for queryable earthquake data.
-
-These are intentionally deferred to keep the core challenge implementation simple and complete.
