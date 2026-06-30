@@ -840,6 +840,50 @@ h1 {
 }
 
 /* =====================================================================
+   SW Update / Offline Banners
+   ===================================================================== */
+
+.sw-banner {
+  position: fixed;
+  z-index: 9999;
+  bottom: 1rem;
+  left: 50%;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  transform: translateX(-50%);
+  max-width: calc(100vw - 2rem);
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--panel-raised);
+  box-shadow: var(--shadow-tight);
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.sw-banner__action {
+  padding: 0.3rem 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  color: var(--accent-ink);
+  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.sw-banner__dismiss {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* =====================================================================
    Reduced Motion
    ===================================================================== */
 

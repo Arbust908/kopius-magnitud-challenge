@@ -1,6 +1,8 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './styles/main.css';
 
+import { registerSW } from 'virtual:pwa-register';
+import { showUpdateBanner, showOfflineReady, showOfflineIndicator } from '@/utils/sw-ui';
 import { createEarthquakeMap } from '@/components/EarthquakeMap';
 import { createSidebar } from '@/components/Sidebar';
 import type { EarthquakeCollection, EarthquakeFilters, SidebarStatus } from '@/types/earthquake';
@@ -90,6 +92,17 @@ if (initialValidation.filters) {
   void searchEarthquakes(initialValidation.filters);
 }
 
+// ponytail: SW registration with callbacks for update/offline UI
+const updateSW = registerSW({
+  onNeedRefresh() {
+    showUpdateBanner(() => void updateSW(true));
+  },
+  onOfflineReady() {
+    showOfflineReady();
+  },
+});
+
+showOfflineIndicator();
 type FetchSource = 'cache' | 'network';
 
 async function fetchEarthquakeData(
