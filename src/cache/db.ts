@@ -31,6 +31,9 @@ function getDb(): Promise<IDBPDatabase<CacheDBSchema>> {
       const store = db.createObjectStore(STORE_NAME, { keyPath: 'key' });
       store.createIndex('fetchedAt', 'fetchedAt');
     },
+  }).catch((err) => {
+    dbPromise = undefined;
+    throw err;
   });
   return dbPromise;
 }
@@ -62,6 +65,7 @@ export async function getCachedEarthquake(
   }
 
   if (isExpired(entry.fetchedAt, filters.endTime)) {
+    await db.delete(STORE_NAME, key);
     return undefined;
   }
 
@@ -75,13 +79,13 @@ export async function setCachedEarthquake(
   const db = await getDb();
   const key = buildCacheKey(filters);
 
-  await pruneCache(db);
-
   await db.put(STORE_NAME, {
     key,
     data,
     fetchedAt: Date.now(),
   });
+
+  await pruneCache(db);
 }
 
 export async function clearCache(): Promise<void> {
@@ -91,14 +95,14 @@ export async function clearCache(): Promise<void> {
 
 async function pruneCache(db: IDBPDatabase<CacheDBSchema>): Promise<void> {
   const count = await db.count(STORE_NAME);
-  if (count < MAX_CACHE_ENTRIES) {
+  if (count <= MAX_CACHE_ENTRIES) {
     return;
   }
 
   const tx = db.transaction(STORE_NAME, 'readwrite');
   const index = tx.store.index('fetchedAt');
   let cursor = await index.openCursor();
-  let toDelete = count - MAX_CACHE_ENTRIES + 1;
+  let toDelete = count - MAX_CACHE_ENTRIES;
 
   while (cursor && toDelete > 0) {
     await cursor.delete();
