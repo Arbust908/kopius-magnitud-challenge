@@ -27,8 +27,14 @@ function createBanner(text: string, actionLabel?: string, onAction?: () => void)
   return banner;
 }
 
+let updateBanner: HTMLDivElement | null = null;
+
 export function showUpdateBanner(updateSW: () => void): void {
-  createBanner('Update available', 'Reload', () => updateSW());
+  if (updateBanner) return;
+  updateBanner = createBanner('Update available', 'Reload', () => {
+    updateBanner = null;
+    updateSW();
+  });
 }
 
 export function showOfflineReady(): void {
@@ -38,6 +44,10 @@ export function showOfflineReady(): void {
 
 export function showOfflineIndicator(): void {
   let offlineBanner: HTMLDivElement | null = null;
+
+  if (!navigator.onLine) {
+    offlineBanner = createBanner('Offline — showing cached data');
+  }
 
   window.addEventListener('offline', () => {
     offlineBanner = createBanner('Offline — showing cached data');
