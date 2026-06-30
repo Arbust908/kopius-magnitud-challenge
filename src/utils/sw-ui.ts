@@ -3,9 +3,15 @@
  * Creates DOM elements that appear/dismiss without framework overhead.
  */
 
-function createBanner(text: string, action?: { label: string; onClick: () => void }): HTMLDivElement {
+function createBanner(
+  text: string,
+  action?: { label: string; onClick: () => void },
+  onDismiss?: () => void,
+): HTMLDivElement {
   const banner = document.createElement('div');
   banner.className = 'sw-banner';
+  banner.setAttribute('role', 'status');
+  banner.setAttribute('aria-live', 'polite');
   banner.textContent = text;
 
   if (action) {
@@ -20,7 +26,10 @@ function createBanner(text: string, action?: { label: string; onClick: () => voi
   dismiss.className = 'sw-banner__dismiss';
   dismiss.textContent = '×';
   dismiss.setAttribute('aria-label', 'Dismiss');
-  dismiss.addEventListener('click', () => banner.remove());
+  dismiss.addEventListener('click', () => {
+    banner.remove();
+    onDismiss?.();
+  });
   banner.append(dismiss);
 
   document.body.append(banner);
@@ -31,13 +40,19 @@ let updateBanner: HTMLDivElement | null = null;
 
 export function showUpdateBanner(updateSW: () => void): void {
   if (updateBanner) return;
-  updateBanner = createBanner('Update available', {
-    label: 'Reload',
-    onClick: () => {
-      updateBanner = null;
-      updateSW();
+  updateBanner = createBanner(
+    'Update available',
+    {
+      label: 'Reload',
+      onClick: () => {
+        updateBanner = null;
+        void updateSW();
+      },
     },
-  });
+    () => {
+      updateBanner = null;
+    },
+  );
 }
 
 export function showOfflineReady(): void {

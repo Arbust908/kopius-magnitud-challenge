@@ -39,9 +39,22 @@ export default defineConfig({
         name: 'Earthquake Explorer',
         short_name: 'Earthquakes',
         description: 'Visualize real-time USGS earthquake data on a map',
+        start_url: '/kopius-magnitud-challenge/',
         theme_color: '#3b82f6',
         background_color: '#f0f4f8',
         display: 'standalone',
+        icons: [
+          {
+            src: 'icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+        ],
       },
     }),
   ],

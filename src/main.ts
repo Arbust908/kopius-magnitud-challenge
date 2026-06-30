@@ -95,7 +95,7 @@ if (initialValidation.filters) {
 // ponytail: SW registration with callbacks for update/offline UI
 const updateSW = registerSW({
   onNeedRefresh() {
-    showUpdateBanner(() => updateSW(true));
+    showUpdateBanner(() => void updateSW(true));
   },
   onOfflineReady() {
     showOfflineReady();
