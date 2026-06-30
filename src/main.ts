@@ -3,7 +3,7 @@ import './styles/main.css';
 
 import { createEarthquakeMap } from '@/components/EarthquakeMap';
 import { createSidebar } from '@/components/Sidebar';
-import type { EarthquakeFilters, SidebarStatus } from '@/types/earthquake';
+import type { EarthquakeCollection, EarthquakeFilters, SidebarStatus } from '@/types/earthquake';
 import { EMPTY_COLLECTION } from '@/types/earthquake';
 import { fetchFromWorker } from '@/api/fetch-from-worker';
 import { getCachedEarthquake, setCachedEarthquake } from '@/cache/db';
@@ -90,60 +90,44 @@ if (initialValidation.filters) {
   void searchEarthquakes(initialValidation.filters);
 }
 
-async function searchEarthquakes(filters: EarthquakeFilters): Promise<void> {
-  const requestId = ++nextRequestId;
-  activeRequestId = requestId;
+type FetchSource = 'cache' | 'network';
 
-  sidebarController.setLoading(true);
-  sidebarController.setStatus({
-    type: 'loading',
-    title: 'Searching USGS…',
-    detail: 'Fetching earthquake GeoJSON for the selected filters.',
-  });
-
+async function fetchEarthquakeData(
+  filters: EarthquakeFilters,
+  requestId: number,
+): Promise<{ data: EarthquakeCollection; source: FetchSource }> {
   try {
     const cached = await getCachedEarthquake(filters);
-
-    if (activeRequestId !== requestId) {
-      return;
-    }
-
-    if (cached) {
-      mapController.setEarthquakes(cached.features.length === 0 ? EMPTY_COLLECTION : cached);
-      setSidebarOpen(false);
-
-      const status = buildSearchStatus(cached.features.length, filters);
-      sidebarController.setStatus({
-        ...status,
-        detail: status.detail ? `${status.detail} (from cache)` : '(from cache)',
-      });
-
-      sidebarController.resetLoading();
-      activeRequestId = 0;
-      return;
-    }
+    if (cached) return { data: cached, source: 'cache' };
   } catch {
-    // IndexedDB unavailable — fall through to network fetch
+    // IndexedDB unavailable — fall through
   }
 
+  const data = await fetchFromWorker(filters, requestId, quakeWorker, pendingRequests);
+  setCachedEarthquake(filters, data).catch(() => {});
+  return { data, source: 'network' };
+}
+
+async function searchEarthquakes(filters: EarthquakeFilters): Promise<void> {
+  // ponytail: reject superseded request so fetchFromWorker's cleanup() runs
+  if (pendingRequests.has(activeRequestId)) {
+    pendingRequests.get(activeRequestId)!(new Error('Superseded'));
+  }
+
+  const requestId = ++nextRequestId;
+  activeRequestId = requestId;
+  sidebarController.setLoading(true);
+  sidebarController.setStatus({ type: 'loading', title: 'Searching USGS…', detail: 'Fetching earthquake GeoJSON for the selected filters.' });
+
   try {
-    const earthquakes = await fetchFromWorker(filters, requestId, quakeWorker, pendingRequests);
+    const { data, source } = await fetchEarthquakeData(filters, requestId);
+    if (activeRequestId !== requestId) return;
 
-    if (activeRequestId !== requestId) {
-      return;
-    }
-
-    setCachedEarthquake(filters, earthquakes).catch(() => {});
-
-    mapController.setEarthquakes(earthquakes.features.length === 0 ? EMPTY_COLLECTION : earthquakes);
+    mapController.setEarthquakes(data.features.length === 0 ? EMPTY_COLLECTION : data);
     setSidebarOpen(false);
-
-    sidebarController.setStatus(buildSearchStatus(earthquakes.features.length, filters));
+    sidebarController.setStatus(buildSearchStatus(data.features.length, filters, source));
   } catch (error) {
-    if (activeRequestId !== requestId) {
-      return;
-    }
-
+    if (activeRequestId !== requestId) return;
     mapController.setEarthquakes(EMPTY_COLLECTION);
     sidebarController.setStatus({
       type: 'error',
@@ -164,7 +148,7 @@ function setSidebarOpen(isOpen: boolean): void {
   mapController.resize();
 }
 
-function buildSearchStatus(count: number, filters: EarthquakeFilters): SidebarStatus {
+function buildSearchStatus(count: number, filters: EarthquakeFilters, source: FetchSource): SidebarStatus {
   if (count === 0) {
     return {
       type: 'empty',
@@ -178,6 +162,7 @@ function buildSearchStatus(count: number, filters: EarthquakeFilters): SidebarSt
     ? `magnitude ${filters.minMagnitude}`
     : `magnitude ${filters.minMagnitude} and up`;
   const detail = `Showing events for ${magnitudeLabel} between ${formatDateInput(filters.startTime)} – ${formatDateInput(filters.endTime)}`;
+  const suffix = source === 'cache' ? ' (from cache)' : '';
 
-  return { type: 'success', title, detail } satisfies SidebarStatus;
+  return { type: 'success', title, detail: detail + suffix } satisfies SidebarStatus;
 }
