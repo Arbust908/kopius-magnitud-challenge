@@ -117,7 +117,7 @@ async function fetchEarthquakeData(
   }
 
   const data = await fetchFromWorker(filters, requestId, quakeWorker, pendingRequests);
-  setCachedEarthquake(filters, data).catch(() => { });
+  setCachedEarthquake(filters, data).catch(() => {});
   return { data, source: 'network' };
 }
 

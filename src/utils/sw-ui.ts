@@ -3,16 +3,16 @@
  * Creates DOM elements that appear/dismiss without framework overhead.
  */
 
-function createBanner(text: string, actionLabel?: string, onAction?: () => void): HTMLDivElement {
+function createBanner(text: string, action?: { label: string; onClick: () => void }): HTMLDivElement {
   const banner = document.createElement('div');
   banner.className = 'sw-banner';
   banner.textContent = text;
 
-  if (actionLabel && onAction) {
+  if (action) {
     const btn = document.createElement('button');
     btn.className = 'sw-banner__action';
-    btn.textContent = actionLabel;
-    btn.addEventListener('click', onAction);
+    btn.textContent = action.label;
+    btn.addEventListener('click', action.onClick);
     banner.append(btn);
   }
 
@@ -31,9 +31,12 @@ let updateBanner: HTMLDivElement | null = null;
 
 export function showUpdateBanner(updateSW: () => void): void {
   if (updateBanner) return;
-  updateBanner = createBanner('Update available', 'Reload', () => {
-    updateBanner = null;
-    updateSW();
+  updateBanner = createBanner('Update available', {
+    label: 'Reload',
+    onClick: () => {
+      updateBanner = null;
+      updateSW();
+    },
   });
 }
 
@@ -49,7 +52,9 @@ export function showOfflineIndicator(): void {
     offlineBanner = createBanner('Offline — showing cached data');
   }
 
+  // Listeners live for the app lifetime; no teardown needed.
   window.addEventListener('offline', () => {
+    offlineBanner?.remove();
     offlineBanner = createBanner('Offline — showing cached data');
   });
 
